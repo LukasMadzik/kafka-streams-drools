@@ -1,10 +1,46 @@
 package uk.co.hadoopathome.kafkastreams;
 
 import uk.co.hadoopathome.kafkastreams.drools.Message;
+import java.util.List;
 
-rule "If Contains E Prepend 0"
-when
-    message:Message (content contains 'e') or message:Message (content contains 'E')
-then
-    message.setContent("0"+message.getContent());
-end
+global List returnList;
+//rule "If Contains E Prepend 0"
+//when
+//    message:Message (content contains 'e') or message:Message (content contains 'E')
+//then
+//    message.setContent("0"+message.getContent());
+//end
+//
+//rule "If Contains R Prepend $"
+//when
+//    message:Message (content contains 'r') or message:Message (content contains 'R')
+//then
+//    message.setContent("$"+message.getContent());
+//end
+
+rule "Noone to shoot"
+   when
+       message:Message (content contains 'Shoot')
+       and
+       not message2:Message (content contains 'Bandit')
+   then
+       delete(message);
+       returnList.add("There is no one to shoot at :(");
+   end
+
+rule "Shoot bandit"
+   when
+       message:Message (content contains 'Shoot')
+       and
+       message2:Message (content contains 'Bandit')
+   then
+       delete(message);
+       returnList.add("You shooted at bandit.");
+   end
+
+rule "Bandit appears"
+   when
+       message:Message (content contains 'Bandit')
+   then
+       returnList.add("An ugly bandit entered your region!");
+   end

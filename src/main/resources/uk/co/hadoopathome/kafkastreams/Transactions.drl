@@ -1,0 +1,48 @@
+package uk.co.hadoopathome.kafkastreams;
+
+import uk.co.hadoopathome.kafkastreams.drools.Message;
+import uk.co.hadoopathome.kafkastreams.drools.CustomerTransactions;
+import java.util.Date;
+import java.util.List;
+
+global List returnList;
+
+rule "Campaign 1"
+    when
+        customerTransactions: CustomerTransactions(countOfTransactions >= 10)
+        message:Message(content contains 'Time passes')
+    then
+        returnList.add(customerTransactions.getCustomerId() + " kampan - 1");
+end
+
+rule "Campaign 2"
+    when
+        customerTransactions: CustomerTransactions(countOfTransactions >= 5)
+        message:Message(content contains 'Time passes')
+    then
+        returnList.add(customerTransactions.getCustomerId() + " kampan - 2");
+end
+
+rule "First transaction"
+    when
+        message:Message ((content contains 'Transaction'))
+        and
+        not customerTransactions: CustomerTransactions()
+    then
+        delete(message);
+        insert (new CustomerTransactions(1, 1, new Date()));
+        returnList.add("First transaction received");
+end
+
+rule "Next transaction"
+    when
+        message:Message ((content contains 'Transaction'))
+        and
+        customerTransactions: CustomerTransactions()
+    then
+        delete(message);
+        customerTransactions.setCountOfTransactions(customerTransactions.getCountOfTransactions()+1);
+        customerTransactions.setLastTransactionDate(new Date());
+        update (customerTransactions);
+        returnList.add("Next transaction received" + customerTransactions.getCountOfTransactions());
+end
